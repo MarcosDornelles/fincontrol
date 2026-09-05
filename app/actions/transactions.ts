@@ -44,6 +44,7 @@ export async function createTransaction(formData: FormData) {
     }
   }
 
+  const payment_method = (formData.get("payment_method") as string) || null;
   const isRecurring = formData.get("is_recurring") === "true";
   const repeatMonths = Math.min(Math.max(Number(formData.get("repeat_months") || 6), 1), 12);
 
@@ -72,6 +73,7 @@ export async function createTransaction(formData: FormData) {
         description,
         date: dateISO,
         is_recurring: true,
+        payment_method,
       });
     }
 
@@ -87,6 +89,7 @@ export async function createTransaction(formData: FormData) {
       description,
       date,
       is_recurring: false,
+      payment_method,
     });
     if (error) throw error;
   }

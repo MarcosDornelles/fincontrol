@@ -43,6 +43,11 @@ export default function TransactionList({ transactions }: { transactions: Transa
                     Recorrente
                   </span>
                 )}
+                {t.payment_method && (
+                  <span className="text-[10px] bg-gray-100 text-gray-600 border border-gray-200 rounded px-1 py-0.5 font-normal uppercase">
+                    {t.payment_method}
+                  </span>
+                )}
               </p>
               <p className="text-xs text-gray-400">
                 {formatDate(t.date)} · {t.accounts?.name}

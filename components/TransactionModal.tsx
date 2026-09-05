@@ -19,6 +19,7 @@ export default function TransactionModal({
   const [type, setType] = useState<"income" | "expense">("expense");
   const [isRecurring, setIsRecurring] = useState(false);
   const [repeatMonths, setRepeatMonths] = useState(6);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -26,6 +27,9 @@ export default function TransactionModal({
     setError(null);
     formData.set("type", type);
     formData.set("is_recurring", isRecurring ? "true" : "false");
+    if (paymentMethod) {
+      formData.set("payment_method", paymentMethod);
+    }
     if (isRecurring) {
       formData.set("repeat_months", repeatMonths.toString());
     }
@@ -103,6 +107,34 @@ export default function TransactionModal({
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           )}
+
+          <div>
+            <label className="text-xs text-gray-500 ml-1 mb-1 block">
+              Forma de Pagamento (opcional)
+            </label>
+            <div className="grid grid-cols-5 gap-1.5">
+              {[
+                { id: "pix", label: "PIX" },
+                { id: "boleto", label: "Boleto" },
+                { id: "credit", label: "Crédito" },
+                { id: "debit", label: "Débito" },
+                { id: "cash", label: "Dinheiro" },
+              ].map((m) => (
+                <button
+                  key={m.id}
+                  type="button"
+                  onClick={() => setPaymentMethod(paymentMethod === m.id ? null : m.id)}
+                  className={`py-2 px-1 text-center rounded-xl text-xs font-medium border transition ${
+                    paymentMethod === m.id
+                      ? "bg-gray-900 text-white border-gray-900"
+                      : "bg-white text-gray-600 border-gray-200 hover:bg-gray-50"
+                  }`}
+                >
+                  {m.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           <div>
             <label className="text-xs text-gray-500 ml-1">

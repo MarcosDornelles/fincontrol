@@ -35,6 +35,7 @@ create table if not exists public.transactions (
   description text,
   date date not null, -- data efetiva/vencimento (rege quando entra no saldo)
   is_recurring boolean not null default false,
+  payment_method text check (payment_method in ('pix', 'boleto', 'credit', 'debit', 'cash')),
   created_at timestamptz not null default now()
 );
 

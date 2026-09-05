@@ -14,6 +14,8 @@ export type Location = {
   created_at: string;
 };
 
+export type PaymentMethod = "pix" | "boleto" | "credit" | "debit" | "cash";
+
 export type Transaction = {
   id: string;
   user_id: string;
@@ -24,6 +26,7 @@ export type Transaction = {
   description: string | null;
   date: string; // yyyy-mm-dd
   is_recurring?: boolean;
+  payment_method?: PaymentMethod | null;
   created_at: string;
   accounts?: { name: string } | null;
   locations?: { name: string } | null;
