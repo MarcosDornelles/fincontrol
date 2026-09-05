@@ -4,6 +4,8 @@ import { useState, useTransition } from "react";
 import { X } from "lucide-react";
 import { createAccount } from "@/app/actions/accounts";
 
+import CurrencyInput from "./CurrencyInput";
+
 export default function AccountFormModal({ onClose }: { onClose: () => void }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -48,12 +50,9 @@ export default function AccountFormModal({ onClose }: { onClose: () => void }) {
             <option value="wallet">Carteira Física</option>
           </select>
 
-          <input
+          <CurrencyInput
             name="initial_balance"
-            type="number"
-            step="0.01"
-            defaultValue={0}
-            placeholder="Saldo inicial (R$)"
+            placeholder="Saldo inicial (ex: R$ 1.948,88)"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
 

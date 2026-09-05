@@ -7,6 +7,8 @@ import LocationAutocomplete from "./LocationAutocomplete";
 import type { Account } from "@/lib/types";
 import { todayISO } from "@/lib/utils";
 
+import CurrencyInput from "./CurrencyInput";
+
 export default function TransactionModal({
   accounts,
   onClose,
@@ -63,13 +65,10 @@ export default function TransactionModal({
         </div>
 
         <form action={handleSubmit} className="space-y-3">
-          <input
+          <CurrencyInput
             name="amount"
-            type="number"
-            step="0.01"
-            min="0.01"
             required
-            placeholder="Valor (R$)"
+            placeholder="Valor (ex: R$ 1.948,88)"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
           />
 
