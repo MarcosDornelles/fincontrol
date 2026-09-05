@@ -1,10 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
 import { Landmark, Wallet as WalletIcon, Plus, Trash2 } from "lucide-react";
 import { accountBalance, formatCurrency } from "@/lib/utils";
 import type { Account, Transaction } from "@/lib/types";
 import AccountFormModal from "@/components/AccountFormModal";
+import ConfirmModal from "@/components/ConfirmModal";
 import { deleteAccount } from "@/app/actions/accounts";
 
 export default function ContasClient({
@@ -15,6 +16,17 @@ export default function ContasClient({
   transactions: Transaction[];
 }) {
   const [open, setOpen] = useState(false);
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+  const [isPending, startTransition] = useTransition();
+
+  function handleDeleteConfirm() {
+    if (!accountToDelete) return;
+    const id = accountToDelete.id;
+    setAccountToDelete(null);
+    startTransition(async () => {
+      await deleteAccount(id);
+    });
+  }
 
   return (
     <div className="space-y-5">
@@ -32,6 +44,8 @@ export default function ContasClient({
         {accounts.map((acc) => {
           const Icon = acc.type === "bank" ? Landmark : WalletIcon;
           const balance = accountBalance(acc, transactions);
+          const relatedCount = transactions.filter((t) => t.account_id === acc.id).length;
+
           return (
             <div
               key={acc.id}
@@ -43,18 +57,17 @@ export default function ContasClient({
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 truncate">{acc.name}</p>
                 <p className="text-xs text-gray-400">
-                  {acc.type === "bank" ? "Conta bancária" : "Carteira física"}
+                  {acc.type === "bank" ? "Conta bancária" : "Carteira física"} · {relatedCount} lançamentos
                 </p>
               </div>
               <span className="text-sm font-semibold text-gray-900">{formatCurrency(balance)}</span>
-              <form action={deleteAccount.bind(null, acc.id)}>
-                <button
-                  className="opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition ml-1"
-                  aria-label="Excluir conta"
-                >
-                  <Trash2 size={15} />
-                </button>
-              </form>
+              <button
+                onClick={() => setAccountToDelete(acc)}
+                className="opacity-100 md:opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition ml-1 p-1"
+                aria-label="Excluir conta"
+              >
+                <Trash2 size={16} />
+              </button>
             </div>
           );
         })}
@@ -67,6 +80,18 @@ export default function ContasClient({
       </div>
 
       {open && <AccountFormModal onClose={() => setOpen(false)} />}
+
+      {accountToDelete && (
+        <ConfirmModal
+          title={`Excluir conta "${accountToDelete.name}"?`}
+          description={`Atenção: Ao excluir esta conta, todas as transações associadas a ela (${
+            transactions.filter((t) => t.account_id === accountToDelete.id).length
+          } lançamento(s)) também serão apagadas permanentemente.`}
+          confirmText={isPending ? "Excluindo..." : "Sim, Excluir Conta"}
+          onConfirm={handleDeleteConfirm}
+          onClose={() => setAccountToDelete(null)}
+        />
+      )}
     </div>
   );
 }
