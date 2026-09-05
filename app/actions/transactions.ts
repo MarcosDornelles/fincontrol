@@ -44,17 +44,52 @@ export async function createTransaction(formData: FormData) {
     }
   }
 
-  const { error } = await supabase.from("transactions").insert({
-    user_id: user.id,
-    account_id,
-    location_id,
-    type,
-    amount,
-    description,
-    date,
-  });
+  const isRecurring = formData.get("is_recurring") === "true";
+  const repeatMonths = Math.min(Math.max(Number(formData.get("repeat_months") || 6), 1), 12);
 
-  if (error) throw error;
+  if (isRecurring) {
+    const transactionsToInsert = [];
+    const baseDate = new Date(date + "T00:00:00");
+    const originalDay = baseDate.getDate();
+
+    for (let i = 0; i < repeatMonths; i++) {
+      const nextDate = new Date(baseDate);
+      nextDate.setMonth(baseDate.getMonth() + i);
+
+      // Trata viradas de mês com menos dias (ex: dia 31 em fevereiro)
+      if (nextDate.getDate() !== originalDay) {
+        nextDate.setDate(0);
+      }
+
+      const dateISO = nextDate.toISOString().slice(0, 10);
+
+      transactionsToInsert.push({
+        user_id: user.id,
+        account_id,
+        location_id,
+        type,
+        amount,
+        description,
+        date: dateISO,
+        is_recurring: true,
+      });
+    }
+
+    const { error } = await supabase.from("transactions").insert(transactionsToInsert);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase.from("transactions").insert({
+      user_id: user.id,
+      account_id,
+      location_id,
+      type,
+      amount,
+      description,
+      date,
+      is_recurring: false,
+    });
+    if (error) throw error;
+  }
 
   revalidatePath("/");
   revalidatePath("/transacoes");

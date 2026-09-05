@@ -17,12 +17,18 @@ export default function TransactionModal({
   onClose: () => void;
 }) {
   const [type, setType] = useState<"income" | "expense">("expense");
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [repeatMonths, setRepeatMonths] = useState(6);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
   function handleSubmit(formData: FormData) {
     setError(null);
     formData.set("type", type);
+    formData.set("is_recurring", isRecurring ? "true" : "false");
+    if (isRecurring) {
+      formData.set("repeat_months", repeatMonths.toString());
+    }
     startTransition(async () => {
       try {
         await createTransaction(formData);
@@ -100,7 +106,7 @@ export default function TransactionModal({
 
           <div>
             <label className="text-xs text-gray-500 ml-1">
-              Data (use uma data futura para lançamentos como contas do mês seguinte)
+              Data de Vencimento / Lançamento
             </label>
             <input
               name="date"
@@ -110,6 +116,41 @@ export default function TransactionModal({
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>
+
+          <div className="pt-1">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={isRecurring}
+                onChange={(e) => setIsRecurring(e.target.checked)}
+                className="w-4 h-4 rounded text-gray-900 focus:ring-gray-900"
+              />
+              <span className="text-xs font-medium text-gray-700">
+                Tornar conta fixa / recorrente (se repete todo mês)
+              </span>
+            </label>
+          </div>
+
+          {isRecurring && (
+            <div className="bg-gray-50 rounded-xl p-3 border border-gray-100 space-y-2">
+              <label className="text-xs text-gray-600 block">
+                Gerar automaticamente para os próximos:
+              </label>
+              <select
+                value={repeatMonths}
+                onChange={(e) => setRepeatMonths(Number(e.target.value))}
+                className="w-full rounded-lg border border-gray-200 px-3 py-2 text-xs bg-white focus:outline-none focus:ring-2 focus:ring-gray-900"
+              >
+                <option value={3}>3 meses</option>
+                <option value={6}>6 meses (Recomendado)</option>
+                <option value={9}>9 meses</option>
+                <option value={12}>12 meses (1 ano)</option>
+              </select>
+              <p className="text-[11px] text-gray-400">
+                Os lançamentos futuros aparecerão em &quot;A vencer&quot; e entrarão no saldo no dia correspondente de cada mês.
+              </p>
+            </div>
+          )}
 
           {error && <p className="text-xs text-red-600">{error}</p>}
 

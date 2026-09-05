@@ -23,6 +23,7 @@ export type Transaction = {
   amount: number;
   description: string | null;
   date: string; // yyyy-mm-dd
+  is_recurring?: boolean;
   created_at: string;
   accounts?: { name: string } | null;
   locations?: { name: string } | null;

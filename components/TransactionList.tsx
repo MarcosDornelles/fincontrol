@@ -21,8 +21,13 @@ export default function TransactionList({ transactions }: { transactions: Transa
           )}
 
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">
+            <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1.5">
               {t.type === "income" ? t.description || "Entrada" : t.locations?.name || "Saída"}
+              {t.is_recurring && (
+                <span className="text-[10px] bg-blue-50 text-blue-600 border border-blue-100 rounded px-1 py-0.5 font-normal">
+                  Recorrente
+                </span>
+              )}
             </p>
             <p className="text-xs text-gray-400">
               {formatDate(t.date)} · {t.accounts?.name}

@@ -34,6 +34,7 @@ create table if not exists public.transactions (
   amount numeric(14,2) not null check (amount > 0),
   description text,
   date date not null, -- data efetiva/vencimento (rege quando entra no saldo)
+  is_recurring boolean not null default false,
   created_at timestamptz not null default now()
 );
 
