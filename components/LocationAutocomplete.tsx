@@ -50,7 +50,7 @@ export default function LocationAutocomplete({
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setOpen(true)}
           autoComplete="off"
-          placeholder="Local (ex: Mercado)"
+          placeholder="Descrição / Local (ex: Concurso, Condomínio, Mercado)"
           className="w-full rounded-xl border border-gray-200 pl-9 pr-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
         />
       </div>
