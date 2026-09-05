@@ -1,14 +1,22 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { ArrowDownCircle, ArrowUpCircle, Trash2 } from "lucide-react";
+import { ArrowDownCircle, ArrowUpCircle, Trash2, Pencil } from "lucide-react";
 import { formatCurrency, formatDate } from "@/lib/utils";
-import type { Transaction } from "@/lib/types";
+import type { Account, Transaction } from "@/lib/types";
 import ConfirmModal from "@/components/ConfirmModal";
+import TransactionModal from "@/components/TransactionModal";
 import { deleteTransaction } from "@/app/actions/transactions";
 
-export default function TransactionList({ transactions }: { transactions: Transaction[] }) {
+export default function TransactionList({
+  transactions,
+  accounts = [],
+}: {
+  transactions: Transaction[];
+  accounts?: Account[];
+}) {
   const [transactionToDelete, setTransactionToDelete] = useState<Transaction | null>(null);
+  const [transactionToEdit, setTransactionToEdit] = useState<Transaction | null>(null);
   const [isPending, startTransition] = useTransition();
 
   if (transactions.length === 0) {
@@ -28,14 +36,17 @@ export default function TransactionList({ transactions }: { transactions: Transa
     <>
       <ul className="divide-y divide-gray-100 bg-white rounded-2xl border border-gray-100 overflow-hidden">
         {transactions.map((t) => (
-          <li key={t.id} className="flex items-center gap-3 px-4 py-3.5 group">
+          <li key={t.id} className="flex items-center gap-3 px-4 py-3.5 group hover:bg-gray-50/50 transition">
             {t.type === "income" ? (
               <ArrowUpCircle size={22} className="text-income shrink-0" />
             ) : (
               <ArrowDownCircle size={22} className="text-expense shrink-0" />
             )}
 
-            <div className="flex-1 min-w-0">
+            <div
+              className="flex-1 min-w-0 cursor-pointer"
+              onClick={() => setTransactionToEdit(t)}
+            >
               <p className="text-sm font-medium text-gray-900 truncate flex items-center gap-1.5">
                 {t.type === "income" ? t.description || "Entrada" : t.locations?.name || "Saída"}
                 {t.is_recurring && (
@@ -54,21 +65,45 @@ export default function TransactionList({ transactions }: { transactions: Transa
               </p>
             </div>
 
-            <span className={`text-sm font-semibold ${t.type === "income" ? "text-income" : "text-expense"}`}>
+            <span
+              className={`text-sm font-semibold cursor-pointer ${
+                t.type === "income" ? "text-income" : "text-expense"
+              }`}
+              onClick={() => setTransactionToEdit(t)}
+            >
               {t.type === "income" ? "+" : "-"}
               {formatCurrency(t.amount)}
             </span>
 
-            <button
-              onClick={() => setTransactionToDelete(t)}
-              className="opacity-100 md:opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition ml-1 p-1"
-              aria-label="Excluir"
-            >
-              <Trash2 size={15} />
-            </button>
+            <div className="flex items-center gap-1 opacity-100 md:opacity-0 group-hover:opacity-100 transition">
+              <button
+                onClick={() => setTransactionToEdit(t)}
+                className="text-gray-300 hover:text-gray-700 transition p-1"
+                aria-label="Editar"
+                title="Editar lançamento"
+              >
+                <Pencil size={15} />
+              </button>
+              <button
+                onClick={() => setTransactionToDelete(t)}
+                className="text-gray-300 hover:text-red-500 transition p-1"
+                aria-label="Excluir"
+                title="Excluir lançamento"
+              >
+                <Trash2 size={15} />
+              </button>
+            </div>
           </li>
         ))}
       </ul>
+
+      {transactionToEdit && (
+        <TransactionModal
+          accounts={accounts}
+          initialData={transactionToEdit}
+          onClose={() => setTransactionToEdit(null)}
+        />
+      )}
 
       {transactionToDelete && (
         <ConfirmModal

@@ -2,9 +2,9 @@
 
 import { useState, useTransition } from "react";
 import { X, ArrowDownCircle, ArrowUpCircle } from "lucide-react";
-import { createTransaction } from "@/app/actions/transactions";
+import { createTransaction, updateTransaction } from "@/app/actions/transactions";
 import LocationAutocomplete from "./LocationAutocomplete";
-import type { Account } from "@/lib/types";
+import type { Account, Transaction } from "@/lib/types";
 import { todayISO } from "@/lib/utils";
 
 import CurrencyInput from "./CurrencyInput";
@@ -12,14 +12,16 @@ import CurrencyInput from "./CurrencyInput";
 export default function TransactionModal({
   accounts,
   onClose,
+  initialData,
 }: {
   accounts: Account[];
   onClose: () => void;
+  initialData?: Transaction | null;
 }) {
-  const [type, setType] = useState<"income" | "expense">("expense");
-  const [isRecurring, setIsRecurring] = useState(false);
+  const [type, setType] = useState<"income" | "expense">(initialData?.type || "expense");
+  const [isRecurring, setIsRecurring] = useState(initialData?.is_recurring || false);
   const [repeatMonths, setRepeatMonths] = useState(6);
-  const [paymentMethod, setPaymentMethod] = useState<string | null>(null);
+  const [paymentMethod, setPaymentMethod] = useState<string | null>(initialData?.payment_method || null);
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
@@ -35,7 +37,11 @@ export default function TransactionModal({
     }
     startTransition(async () => {
       try {
-        await createTransaction(formData);
+        if (initialData) {
+          await updateTransaction(initialData.id, formData);
+        } else {
+          await createTransaction(formData);
+        }
         onClose();
       } catch (e: any) {
         setError(e.message || "Erro ao salvar");
@@ -47,7 +53,9 @@ export default function TransactionModal({
     <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center bg-black/40">
       <div className="bg-white w-full md:max-w-md rounded-t-3xl md:rounded-3xl p-6 pb-8 max-h-[90dvh] overflow-y-auto">
         <div className="flex items-center justify-between mb-5">
-          <h2 className="text-lg font-semibold text-gray-900">Nova Transação</h2>
+          <h2 className="text-lg font-semibold text-gray-900">
+            {initialData ? "Editar Transação" : "Nova Transação"}
+          </h2>
           <button onClick={onClose} className="text-gray-400 hover:text-gray-700">
             <X size={22} />
           </button>
@@ -77,6 +85,7 @@ export default function TransactionModal({
         <form action={handleSubmit} className="space-y-3">
           <CurrencyInput
             name="amount"
+            defaultValue={initialData?.amount}
             required
             placeholder="Valor (ex: R$ 1.948,88)"
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
@@ -85,7 +94,7 @@ export default function TransactionModal({
           <select
             name="account_id"
             required
-            defaultValue=""
+            defaultValue={initialData?.account_id || ""}
             className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           >
             <option value="" disabled>
@@ -99,10 +108,11 @@ export default function TransactionModal({
           </select>
 
           {type === "expense" ? (
-            <LocationAutocomplete />
+            <LocationAutocomplete defaultValue={initialData?.locations?.name || ""} />
           ) : (
             <input
               name="description"
+              defaultValue={initialData?.description || ""}
               placeholder="Descrição (ex: Salário)"
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
@@ -144,7 +154,7 @@ export default function TransactionModal({
               name="date"
               type="date"
               required
-              defaultValue={todayISO()}
+              defaultValue={initialData?.date || todayISO()}
               className="w-full rounded-xl border border-gray-200 px-4 py-3 text-sm mt-1 focus:outline-none focus:ring-2 focus:ring-gray-900"
             />
           </div>

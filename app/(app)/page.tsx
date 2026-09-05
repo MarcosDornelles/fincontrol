@@ -33,7 +33,7 @@ export default async function HomePage() {
 
       <div>
         <h3 className="text-sm font-medium text-gray-500 mb-2 px-1">Últimos lançamentos</h3>
-        <TransactionList transactions={recent} />
+        <TransactionList transactions={recent} accounts={accs} />
       </div>
     </div>
   );

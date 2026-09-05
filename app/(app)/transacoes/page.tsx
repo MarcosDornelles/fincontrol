@@ -1,6 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import TransactionList from "@/components/TransactionList";
-import type { Transaction } from "@/lib/types";
+import type { Account, Transaction } from "@/lib/types";
 import Link from "next/link";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -24,14 +24,18 @@ export default async function TransacoesPage({
   const { start, end, label, prev, next } = monthRange(searchParams.month);
   const supabase = createClient();
 
-  const { data: transactions } = await supabase
-    .from("transactions")
-    .select("*, accounts(name), locations(name)")
-    .gte("date", start)
-    .lte("date", end)
-    .order("date", { ascending: false });
+  const [{ data: transactions }, { data: accounts }] = await Promise.all([
+    supabase
+      .from("transactions")
+      .select("*, accounts(name), locations(name)")
+      .gte("date", start)
+      .lte("date", end)
+      .order("date", { ascending: false }),
+    supabase.from("accounts").select("*").order("created_at"),
+  ]);
 
   const txs = (transactions as Transaction[]) || [];
+  const accs = (accounts as Account[]) || [];
 
   return (
     <div className="space-y-5">
@@ -47,7 +51,7 @@ export default async function TransacoesPage({
         </Link>
       </div>
 
-      <TransactionList transactions={txs} />
+      <TransactionList transactions={txs} accounts={accs} />
     </div>
   );
 }
